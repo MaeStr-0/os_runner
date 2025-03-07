@@ -156,6 +156,7 @@ lines_str = str(lines)
 
 offset = lines[0][:9]
 offset = int(offset, 16)
+clasters_list = []
 
 if zones['1'] == 'FAT12':
     if (offset + number_dir * 1.5)%10!=0:
@@ -202,16 +203,42 @@ if zones['1'] == 'FAT12':
         next_claster = next_claster[3:6]
         print(next_claster)
 
-
 elif zones['1'] == 'FAT16':
-    if (offset + number_dir * 1.5)%10!=0:
-        part = True
-    else:
-        part = False
-
     loc = math.floor(offset + number_dir * 2)
     loc = hex(loc)
     print(loc)
+    next_loc = loc
+    while next_loc!='FF':
+
+        coord = {'0': 10, '1': 13, '2': 16, '3': 19, '4': 22, '5': 25, '6': 28, '7': 31, '8': 35, '9': 38, "a": 41, 'b': 44,
+                 'c': 47, 'd': 50, 'e': 53, 'f': 56}
+        row_f = next_loc[2:4]
+        print(row_f)
+        col_f = next_loc[4:5]
+        print(col_f)
+        print(next_loc)
+
+        # поиск индекса строки, содержащей искомую подстроку
+        for i in range(0, 31):
+            match = re.findall(f"{row_f}", lines[i][:8], re.IGNORECASE)
+            # print(match)
+            if not match:
+                continue
+            else:
+                break
+
+        t_coord = coord[col_f]
+        next_claster = lines[i][t_coord:t_coord + 5]
+        next_claster = next_claster.split(sep=' ')
+        next_claster.reverse()
+        next_claster = ''.join(next_claster)
+        #next_claster = next_claster[0:2]
+        next_claster = int(next_claster, 16)
+        clasters_list.append(next_claster)
+        next_loc = math.floor(offset + next_claster * 2)
+        next_loc = hex(next_loc)
+    print(clasters_list)
+
 else:
     print()
 
