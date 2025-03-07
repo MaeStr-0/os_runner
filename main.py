@@ -4,10 +4,12 @@ from getpass import getpass
 
 #МЕТОДИЧКА ПО FAT https://drive.google.com/file/d/19GbO9TWT19yNlAx5nR7CA8Oi0FNyufrg/view
 #МЕТОДИЧКА ПО NTFC https://drive.google.com/file/d/1zPc29KquTsB0yoKcUOodIT4ZtslTv-Xy/view
+#САЙТ С ФАЙЛОВЫМИ СИСТЕМАМИ https://fat.bk252.ru/
 
 #ШАГ №1
 file_name = input("Введи путь до файла формата xxx/xxx/xxx\n")
 file_name = file_name.split(sep='/')
+file_name = list(filter(None, file_name))
 download_sector = input("\nВставь начальную таблицу\n")
 print("\n")
 lines = []
