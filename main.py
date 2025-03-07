@@ -140,6 +140,92 @@ for z in range(0, len(file_name)):
         print('Количество занимаемых кластеров       |', value_of_clasters)
         print('Первый кластер                        |', file_args['3'])
         print('-----------------------------------------------------------------------')
-        print(f'ПЕРЕЙДИ В {zones['4']}-Й СЕКТОР')
+        file_clasters = input(f'\033[31mПЕРЕЙДИ В {zones['4']}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
 
 #ШАГ №6
+
+lines = []
+while True:
+    file_clasters = input()
+    if file_clasters == '':
+        break
+    else:
+        lines.append(file_clasters + '\n')
+
+lines_str = str(lines)
+
+offset = lines[0][:9]
+offset = int(offset, 16)
+
+if zones['1'] == 'FAT12':
+    if (offset + number_dir * 1.5)%10!=0:
+        part = True
+    else:
+        part = False
+
+    loc = math.floor(offset + number_dir * 1.5)
+    loc = hex(loc)
+
+    coord = {'0':9,'1':12,'2':15,'3':18,'4':21, '5':24, '6':27, '7': 30, '8':33, '9':36, "a":39, 'b':42, 'c':45, 'd':48, 'e':51, 'f':54}
+    row_f = loc[2:4]
+    print(row_f)
+    col_f = loc[4:5]
+    print(col_f)
+    print(loc)
+
+    #поиск индекса строки, содержащей искомую подстроку
+    for i in range(0, 31):
+        match = re.findall(f"{row_f}", lines[i][:8], re.IGNORECASE)
+        # print(match)
+        if not match:
+            continue
+        else:
+            break
+
+    #вычисление остатка для поиска следующего кластера
+    if part:
+        t_coord = coord[col_f] - 3
+        next_claster = lines[i][t_coord:t_coord + 9]
+        next_claster = next_claster.split(sep=' ')
+        next_claster.reverse()
+        next_claster = ''.join(next_claster)
+        next_claster = next_claster[0:3]
+        print(next_claster)
+
+
+    else:
+        t_coord = coord[col_f]
+        next_claster = lines[i][t_coord:t_coord + 9]
+        next_claster = next_claster.split(sep=' ')
+        next_claster.reverse()
+        next_claster = ''.join(next_claster)
+        next_claster = next_claster[3:6]
+        print(next_claster)
+
+
+elif zones['1'] == 'FAT16':
+    if (offset + number_dir * 1.5)%10!=0:
+        part = True
+    else:
+        part = False
+
+    loc = math.floor(offset + number_dir * 2)
+    loc = hex(loc)
+    print(loc)
+else:
+    print()
+
+
+
+
+
+
+
+for i in range(0, 31):
+    match = re.findall(f"{file_name[z]}", lines[i], re.IGNORECASE)
+    # print(match)
+    if not match:
+        continue
+    else:
+        break
+
