@@ -1,6 +1,6 @@
-import math
-import re
-from getpass import getpass
+import glob
+import math, re, time, os, subprocess
+import shlex
 
 #МЕТОДИЧКА ПО FAT https://drive.google.com/file/d/19GbO9TWT19yNlAx5nR7CA8Oi0FNyufrg/view
 #МЕТОДИЧКА ПО NTFC https://drive.google.com/file/d/1zPc29KquTsB0yoKcUOodIT4ZtslTv-Xy/view
@@ -16,7 +16,6 @@ lines = []
 
 while True:
     download_sector = input()
-    # 👇️ Если пользователь нажал Enter без ввода значения, прервать цикл
     if download_sector == '':
         break
     else:
@@ -142,6 +141,8 @@ for z in range(0, len(file_name)):
         print('-----------------------------------------------------------------------')
         file_clasters = input(f'\033[31mПЕРЕЙДИ В {zones['4']}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
 
+sectors = []
+
 #ШАГ №6
 
 lines = []
@@ -156,7 +157,7 @@ lines_str = str(lines)
 
 offset = lines[0][0:9]
 offset = int(offset, 16)
-clasters_list = []
+clasters_list = [file_args['3']]
 
 if zones['1'] == 'FAT12':
     if (offset + number_dir * 1.5) % 10 != 0:
@@ -247,28 +248,47 @@ elif zones['1'] == 'FAT16':
             next_loc = math.floor(offset + next_clast * 2)
             next_loc = hex(next_loc)
             print(next_clast)
-    print(clasters_list)
+    if len(clasters_list) > value_of_clasters:
+        del clasters_list[-1]
+    else:
+        print(clasters_list)
 
     #ШАГ №7
-    sectors = []
+
     for i in clasters_list:
         sector = (i - 2) * zones['3'] + pos_start_data
         sectors.append(sector)
         if zones['3'] > 1:
             for x in range(0, zones["3"]):
-                sectors.append(sector)
                 sector += 1
+                sectors.append(sector)
+
         else:
             continue
-
-    print(sectors)
+    print(f'\033[31mВЫГРУЗИ В ПАПКУ drop_files СЛЕДУЮЩИЕ СЕКТОРА\033[0m')
+    for i in range(0, len(sectors)):
+        print(sectors[i])
 else:
     print()
 
-for i in range(0, 31):
-    match = re.findall(f"{file_name[z]}", lines[i], re.IGNORECASE)
-    # print(match)
-    if not match:
+while True:
+    if len(os.listdir('drop_file')) < len(sectors):
         continue
     else:
-        break
+        if len(os.listdir('drop_file')) == len(sectors):
+            ans = input("ЗАГРУЗИЛ ВСЕ ФАЙЛЫ?[y/n]")
+            if ans == 'y':
+                break
+            else:
+                continue
+        else:
+            print('ПРИСУТСТВУЮТ ЛИШНИЕ ФАЙЛЫ')
+            continue
+
+files = list(filter(os.path.isfile, glob.glob('/drop_file/' + "*")))
+files.sort(key=lambda t: os.path.getmtime(x))
+
+for i in range(0, len(os.listdir('drop_file'))):
+    os.rename(f'{files[i]}', f'{i + 1}')
+
+subprocess.call(shlex.split(f'./summer.sh {size_dir}'))
