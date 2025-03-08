@@ -141,10 +141,10 @@ for z in range(0, len(file_name)):
         print('-----------------------------------------------------------------------')
         file_clasters = input(f'\033[31mПЕРЕЙДИ В {zones['4']}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
 
-sectors = []
+
 
 #ШАГ №6
-
+sectors = []
 lines = []
 while True:
     file_clasters = input()
@@ -158,52 +158,101 @@ lines_str = str(lines)
 offset = lines[0][0:9]
 offset = int(offset, 16)
 clasters_list = [file_args['3']]
+coord = {'0': 8, '1': 10, '2': 12, '3': 14, '4': 16, '5': 18, '6': 20, '7': 22, '8': 24, '9': 26, "a": 28,
+         'b': 30, 'c': 32, 'd': 34, 'e': 36, 'f': 38}
 
 if zones['1'] == 'FAT12':
-    if (offset + number_dir * 1.5) % 10 != 0:
-        part = True
-    else:
+    if (offset + number_dir * 1.5).is_integer():
         part = False
+    else:
+        part = True
 
+    for i in range(0, 32):
+        lines[i] = lines[i].replace(" ", "")
     loc = math.floor(offset + number_dir * 1.5)
     loc = hex(loc)
-
-    coord = {'0': 9, '1': 12, '2': 15, '3': 18, '4': 21, '5': 24, '6': 27, '7': 30, '8': 33, '9': 36, "a": 39, 'b': 42,
-             'c': 45, 'd': 48, 'e': 51, 'f': 54}
-    row_f = loc[2:4]
-    print(row_f)
-    col_f = loc[4:5]
-    print(col_f)
-    print(loc)
-
-    #поиск индекса строки, содержащей искомую подстроку
-    for i in range(0, 31):
-        match = re.findall(f"{row_f}", lines[i][:8], re.IGNORECASE)
-        # print(match)
-        if not match:
-            continue
-        else:
+    next_loc = loc
+    next_clast = 0
+    while True:
+        if next_clast == 4095:
             break
+        else:
+            row_f = next_loc[2:4]
+            row_f = '00000'+row_f
+            print('row ', row_f)
+            col_f = next_loc[4:5]
+            print('col ', col_f)
+            #print(next_loc)
+            #поиск индекса строки, содержащей искомую подстроку
+            for i in range(0, 31):
+                match = re.findall(f"{row_f}", lines[i][0:8], re.IGNORECASE)
+                # print(match)
+                if not match:
+                    continue
+                else:
+                    break
 
-    #вычисление остатка для поиска следующего кластера
-    if part:
-        t_coord = coord[col_f] - 3
-        next_claster = lines[i][t_coord:t_coord + 9]
-        next_claster = next_claster.split(sep=' ')
-        next_claster.reverse()
-        next_claster = ''.join(next_claster)
-        next_claster = next_claster[0:3]
-        print(next_claster)
+            #вычисление остатка для поиска следующего кластера
+            if part:
+                buff = ''
+                t_coord = coord[col_f] - 2
+                next_clast = lines[i][t_coord:(t_coord + 6)]
+                buff += next_clast[4:6]
+                buff += next_clast[2:4]
+                buff += next_clast[0:2]
+                next_clast = buff[0:3]
+                print(next_clast)
 
+            else:
+                buff = ''
+                t_coord = coord[col_f]
+                next_clast = lines[i][t_coord:(t_coord + 6)]
+                print(next_clast)
+                buff += next_clast[4:6]
+                print(buff)
+                buff += next_clast[2:4]
+                print(buff)
+                buff += next_clast[0:2]
+                print(buff)
+                next_clast = buff[3:6]
+                print(next_clast)
+
+            next_clast = int(next_clast, 16)
+
+            clasters_list.append(next_clast)
+
+            if (offset + next_clast * 1.5).is_integer():
+                part = False
+            else:
+                part = True
+
+            next_loc = math.floor(offset + next_clast * 1.5)
+            next_loc = hex(next_loc)
+            print(next_clast)
+
+    print("clasters ",clasters_list)
+    if len(clasters_list) > value_of_clasters:
+
+        del clasters_list[-1]
 
     else:
-        t_coord = coord[col_f]
-        next_claster = lines[i][t_coord:t_coord + 9]
-        next_claster = next_claster.split(sep=' ')
-        next_claster.reverse()
-        next_claster = ''.join(next_claster)
-        next_claster = next_claster[3:6]
-        print(next_claster)
+        print(clasters_list)
+
+    #ШАГ №7
+
+    for i in clasters_list:
+        sector = (i - 2) * zones['3'] + pos_start_data
+        sectors.append(sector)
+        if zones['3'] > 1:
+            for x in range(0, zones["3"]-1):
+                sector += 1
+                sectors.append(sector)
+        else:
+            continue
+
+    print(f'\033[31mВЫГРУЗИ В ПАПКУ drop_files СЛЕДУЮЩИЕ СЕКТОРА\033[0m')
+    for i in range(0, len(sectors)):
+        print(sectors[i])
 
 elif zones['1'] == 'FAT16':
     for i in range(0, 32):
@@ -218,8 +267,6 @@ elif zones['1'] == 'FAT16':
         if next_clast == 255:
             break
         else:
-            coord = {'0': 8, '1': 10, '2': 12, '3': 14, '4': 16, '5': 18, '6': 20, '7': 22, '8': 24, '9': 26, "a": 28,
-                     'b': 30, 'c': 32, 'd': 34, 'e': 36, 'f': 38}
             row_f = next_loc[2:4]
             #print(row_f)
             col_f = next_loc[4:5]
@@ -269,7 +316,7 @@ elif zones['1'] == 'FAT16':
     for i in range(0, len(sectors)):
         print(sectors[i])
 else:
-    print()
+    print("ntfc")
 
 while True:
     if len(os.listdir('drop_file')) < len(sectors):
