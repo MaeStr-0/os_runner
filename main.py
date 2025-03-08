@@ -1,12 +1,14 @@
-import glob
-import math, re, time, os, subprocess
+import math
+import os
+import re
 import shlex
+import subprocess
 
-#МЕТОДИЧКА ПО FAT https://drive.google.com/file/d/19GbO9TWT19yNlAx5nR7CA8Oi0FNyufrg/view
-#МЕТОДИЧКА ПО NTFC https://drive.google.com/file/d/1zPc29KquTsB0yoKcUOodIT4ZtslTv-Xy/view
-#САЙТ С ФАЙЛОВЫМИ СИСТЕМАМИ https://fat.bk252.ru/
+# МЕТОДИЧКА ПО FAT https://drive.google.com/file/d/19GbO9TWT19yNlAx5nR7CA8Oi0FNyufrg/view
+# МЕТОДИЧКА ПО NTFC https://drive.google.com/file/d/1zPc29KquTsB0yoKcUOodIT4ZtslTv-Xy/view
+# САЙТ С ФАЙЛОВЫМИ СИСТЕМАМИ https://fat.bk252.ru/
 
-#ШАГ №1
+# ШАГ №1
 file_name = input("Введи путь до файла формата xxx/xxx/xxx\n")
 file_name = file_name.split(sep='/')
 file_name = list(filter(None, file_name))
@@ -70,7 +72,7 @@ print('Сектор корневой папки                 | ', f'{pos_root
 print('-----------------------------------------------------------------------')
 root_table = input(f'\033[31mПЕРЕЙДИ В {pos_root}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
 
-#ШАГ №3, 4, 5
+# ШАГ №3, 4, 5
 
 for z in range(0, len(file_name)):
 
@@ -86,14 +88,10 @@ for z in range(0, len(file_name)):
 
     for i in range(0, 31):
         match = re.findall(f"{file_name[z]}", lines[i], re.IGNORECASE)
-        # print(match)
         if not match:
             continue
         else:
             break
-
-    # print(lines[4])
-    #print(file_name[0])
 
     pos_start_data = int(pos_root) + 32
     pos_directory = [lines[i], lines[i + 1]]
@@ -141,9 +139,7 @@ for z in range(0, len(file_name)):
         print('-----------------------------------------------------------------------')
         file_clasters = input(f'\033[31mПЕРЕЙДИ В {zones['4']}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
 
-
-
-#ШАГ №6
+# ШАГ №6
 sectors = []
 lines = []
 while True:
@@ -178,11 +174,11 @@ if zones['1'] == 'FAT12':
             break
         else:
             row_f = next_loc[2:4]
-            row_f = '00000'+row_f
+            row_f = '00000' + row_f
             print('row ', row_f)
             col_f = next_loc[4:5]
             print('col ', col_f)
-            #print(next_loc)
+
             #поиск индекса строки, содержащей искомую подстроку
             for i in range(0, 31):
                 match = re.findall(f"{row_f}", lines[i][0:8], re.IGNORECASE)
@@ -230,7 +226,7 @@ if zones['1'] == 'FAT12':
             next_loc = hex(next_loc)
             print(next_clast)
 
-    print("clasters ",clasters_list)
+    print("clasters ", clasters_list)
     if len(clasters_list) > value_of_clasters:
 
         del clasters_list[-1]
@@ -244,7 +240,7 @@ if zones['1'] == 'FAT12':
         sector = (i - 2) * zones['3'] + pos_start_data
         sectors.append(sector)
         if zones['3'] > 1:
-            for x in range(0, zones["3"]-1):
+            for x in range(0, zones["3"] - 1):
                 sector += 1
                 sectors.append(sector)
         else:
@@ -257,10 +253,10 @@ if zones['1'] == 'FAT12':
 elif zones['1'] == 'FAT16':
     for i in range(0, 32):
         lines[i] = lines[i].replace(" ", "")
-    #print(lines)
+
     loc = math.floor(offset + number_dir * 2)
     loc = hex(loc)
-    #print(loc)
+
     next_loc = loc
     next_clast = 0
     while True:
@@ -268,15 +264,11 @@ elif zones['1'] == 'FAT16':
             break
         else:
             row_f = next_loc[2:4]
-            #print(row_f)
             col_f = next_loc[4:5]
-            #print(col_f)
-            #print(next_loc)
 
             # поиск индекса строки, содержащей искомую подстроку
             for i in range(0, 31):
                 match = re.findall(f"{row_f}", lines[i][0:8], re.IGNORECASE)
-                # print(match)
                 if not match:
                     continue
                 else:
@@ -287,10 +279,7 @@ elif zones['1'] == 'FAT16':
             next_clast = next_clast.split(sep=' ')
             next_clast.reverse()
             next_clast = ''.join(next_clast)
-            #next_claster = next_claster[0:2]
-
             next_clast = int(next_clast, 16)
-
             clasters_list.append(next_clast)
             next_loc = math.floor(offset + next_clast * 2)
             next_loc = hex(next_loc)
@@ -342,8 +331,6 @@ def rename_files_simple(directory):
         print(f"Renamed {filepath} to {i + 1}")
 
 
-#Example
+# Example
 rename_files_simple("drop_file")
-
-#subprocess.run(["~/summer.sh", f"{size_dir}"], shell=True)
 subprocess.call(shlex.split(f'./summer.sh {size_dir}'))
