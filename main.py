@@ -285,10 +285,18 @@ while True:
             print('ПРИСУТСТВУЮТ ЛИШНИЕ ФАЙЛЫ')
             continue
 
-files = list(filter(os.path.isfile, glob.glob('/drop_file/' + "*")))
-files.sort(key=lambda t: os.path.getmtime(x))
 
-for i in range(0, len(os.listdir('drop_file'))):
-    os.rename(f'{files[i]}', f'{i + 1}')
+def rename_files_simple(directory):
+    files = [(os.path.join(directory, f), os.path.getctime(os.path.join(directory, f)))
+             for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+    files.sort(key=lambda x: x[1])
+    for i, (filepath, _) in enumerate(files):
+        os.rename(filepath, os.path.join(directory, str(i + 1)))
+        print(f"Renamed {filepath} to {i + 1}")
 
+
+#Example
+rename_files_simple("drop_file")
+
+#subprocess.run(["~/summer.sh", f"{size_dir}"], shell=True)
 subprocess.call(shlex.split(f'./summer.sh {size_dir}'))
