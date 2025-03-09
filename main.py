@@ -26,6 +26,7 @@ while True:
 lines_str = str(lines)
 results = re.search(r'FAT', lines_str)
 results1 = re.search(r'FAT12', lines_str)
+results2 = re.search(r'NTFS', lines_str)
 
 zones = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0}
 
@@ -36,6 +37,7 @@ if results is not None:
         zones['1'] = 'FAT16'
 else:
     print("это не fat")
+    zones['1'] = 'NTFS'
 
 pos = [[43, 48], [52, 57], [12, 17], [27, 32], [1, 1]]
 numbers = ['2', '4', '6', '7']
