@@ -263,7 +263,7 @@ elif zones['1'] == 'FAT16':
     next_loc = loc
     next_clast = 0
     while True:
-        if next_clast == 255:
+        if next_clast == 255 or next_clast == 65535:
             break
         else:
             row_f = next_loc[2:]
@@ -282,10 +282,12 @@ elif zones['1'] == 'FAT16':
                     break
 
             t_coord = coord[col_f]
-            next_clast = lines[i][t_coord:t_coord + 2]
-            next_clast = next_clast.split(sep=' ')
-            next_clast.reverse()
-            next_clast = ''.join(next_clast)
+            next_clast = lines[i][t_coord:t_coord + 4]
+            buff = ''
+            buff += next_clast[2:4]
+            buff += next_clast[0:2]
+            print(buff)
+            next_clast = buff
             next_clast = int(next_clast, 16)
             clasters_list.append(next_clast)
             next_loc = math.floor(offset + next_clast * 2)
@@ -302,7 +304,7 @@ elif zones['1'] == 'FAT16':
         sector = (i - 2) * zones['3'] + pos_start_data
         sectors.append(sector)
         if zones['3'] > 1:
-            for x in range(0, (zones["3"]-1)):
+            for x in range(0, (zones["3"] - 1)):
                 sector += 1
                 sectors.append(sector)
 
