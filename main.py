@@ -316,19 +316,8 @@ elif zones['1'] == 'FAT16':
 else:
     print("ntfc")
 
-while True:
-    if len(os.listdir('drop_file')) < len(sectors):
-        continue
-    else:
-        if len(os.listdir('drop_file')) == len(sectors):
-            ans = input("ЗАГРУЗИЛ ВСЕ ФАЙЛЫ?[y/n]")
-            if ans == 'y':
-                break
-            else:
-                continue
-        else:
-            print('ПРИСУТСТВУЮТ ЛИШНИЕ ФАЙЛЫ')
-            continue
+print("КОГДА ЗАГРУЗИШЬ ВСЕ ФАЙЛЫ, ВВЕДИ ЛЮБОЕ ЗНАЧЕНИЕ")
+a = input()
 
 
 def rename_files_simple(directory):
