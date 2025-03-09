@@ -297,7 +297,7 @@ elif zones['1'] == 'FAT16':
         sector = (i - 2) * zones['3'] + pos_start_data
         sectors.append(sector)
         if zones['3'] > 1:
-            for x in range(0, zones["3"]):
+            for x in range(0, (zones["3"]-1)):
                 sector += 1
                 sectors.append(sector)
 
