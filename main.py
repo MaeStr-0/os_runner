@@ -175,10 +175,11 @@ if zones['1'] == 'FAT12':
         if next_clast == 4095:
             break
         else:
-            row_f = next_loc[2:4]
-            row_f = '00000' + row_f
+            row_f = next_loc[2:]
+            row_f = row_f[:-1]
+            row_f = '00' + row_f
             print('row ', row_f)
-            col_f = next_loc[4:5]
+            col_f = next_loc[-1]
             print('col ', col_f)
 
             #поиск индекса строки, содержащей искомую подстроку
@@ -265,8 +266,12 @@ elif zones['1'] == 'FAT16':
         if next_clast == 255:
             break
         else:
-            row_f = next_loc[2:4]
-            col_f = next_loc[4:5]
+            row_f = next_loc[2:]
+            row_f = row_f[:-1]
+            row_f = '00' + row_f
+            print('row ', row_f)
+            col_f = next_loc[-1]
+            print('col ', col_f)
 
             # поиск индекса строки, содержащей искомую подстроку
             for i in range(0, 31):
