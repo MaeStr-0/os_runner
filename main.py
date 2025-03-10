@@ -326,9 +326,11 @@ else:
     for row in rows:
         zone = lines[row]
         if i == 0:
-            zone = zone[pos[i][0]:pos[i][1]].split()
-            zone.reverse()
-            zone = ''.join(zone)
+            zone = zone[pos[i][0]:pos[i][1]]
+            buff = ''
+            buff += zone[2:4]
+            buff += zone[0:2]
+            zone = buff
             zone = int(zone, 16)
             zones[f'{numbers[i]}'] = zone
             i += 1
@@ -338,24 +340,194 @@ else:
             zones[f'{numbers[i]}'] = zone
             i += 1
 
-    zone = lines[0]
-    zone = zone[49:51]
-    zone = int(zone, 16)
-    zones['3'] = zone
-    zone = lines[1]
-    zone = zone[9:11]
-    zone = int(zone, 16)
-    zones['5'] = zone
-
     print('Система хранения                      | ', f'{zones['1']}')
     print('Размер сектора                        | ', f'{zones['2']}', ' байт')
     print('Количество секторов в кластере        | ', f'{zones['3']}', ' сектор')
     print('Cмещение до MFT таблицы в кластерах   | ', f'{zones['4']}', ' секторов')
     print('-----------------------------------------------------------------------')
-    pos_root = int(zones['4']) + (int(zones['5']) * int(zones['7']))
-    print('Сектор корневой папки                 | ', f'{pos_root}', 'сектор')
+    offset_mft = int(zones['2']) * int(zones['3']) * int(zones['4'])
+    start_mft = math.floor(offset_mft / zones['2'])
+    print('Сектор корневой папки                 | ', f'{start_mft}', 'сектор')
     print('-----------------------------------------------------------------------')
-    root_table = input(f'\033[31mПЕРЕЙДИ В {pos_root}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
+    mft_table = input(f'\033[31mПЕРЕЙДИ В {start_mft}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
+    lines = []
+    while True:
+        mft_table = input()
+        if mft_table == '':
+            break
+        else:
+            lines.append(mft_table + '\n')
+    for i in range(0, 32):
+        lines[i] = lines[i].replace(" ", "")
+
+    mft_entry_size = lines[1][32:40]
+    buff = ''
+    buff += mft_entry_size[6:8]
+    buff += mft_entry_size[4:6]
+    buff += mft_entry_size[2:4]
+    buff += mft_entry_size[0:2]
+    mft_entry_size = buff
+    offset_root = offset_mft + int(mft_entry_size, 16) * 5
+    root_sector = math.floor(offset_root / zones['2'])
+
+    mft_table = input(f'\033[31mПЕРЕЙДИ В {root_sector}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
+    lines = []
+    while True:
+        mft_table = input()
+        if mft_table == '':
+            break
+        else:
+            lines.append(mft_table + '\n')
+    for i in range(0, 32):
+        lines[i] = lines[i].replace(" ", "")
+
+    offset_present_dir = int(lines[0][0:8], 16)
+    offset_attributes = lines[1]
+    print(offset_attributes)
+    offset_attributes = offset_attributes[16:20]
+    print(offset_attributes)
+    buff = ''
+    buff += offset_attributes[2:4]
+    buff += offset_attributes[0:2]
+    offset_attributes = int(buff, 16)
+    start_attribute_table = hex(offset_attributes + offset_present_dir)
+    print(start_attribute_table)
+    col = start_attribute_table[-1]
+    col = (int(col, 16) * 2) + 8
+
+    row = '00' + start_attribute_table[2:5]
+
+    z = 0
+    for i in range(0, 31):
+        match = re.findall(f"{row}", lines[i], re.IGNORECASE)
+        if not match:
+            z += 1
+            continue
+        else:
+            break
+    first_attribute_bites = lines[z][col:(col + 8)]
+    print(first_attribute_bites)
+    second_attribute_bites = lines[z][(col + 8):(col + 16)]
+    buff = ''
+    buff += second_attribute_bites[6:8]
+    buff += second_attribute_bites[4:6]
+    buff += second_attribute_bites[2:4]
+    buff += second_attribute_bites[0:2]
+    second_attribute_bites = buff
+    print(second_attribute_bites)
+    next_offset = start_attribute_table
+    while True:
+        if first_attribute_bites[0:2] == 'A0':
+            break
+        else:
+            next_offset = hex(int(next_offset, 16) + int(second_attribute_bites, 16))
+            print(next_offset)
+            row = '00' + next_offset[2:5]
+            col = next_offset[-1]
+            col = (int(col, 16) * 2) + 8
+            z = 0
+            for i in range(0, 31):
+                match = re.findall(f"{row}", lines[i], re.IGNORECASE)
+                if not match:
+                    z += 1
+                    continue
+                else:
+                    break
+            first_attribute_bites = lines[z][col:(col + 8)]
+            second_attribute_bites = lines[z][(col + 8):(col + 16)]
+            buff=''
+            buff += second_attribute_bites[6:8]
+            buff += second_attribute_bites[4:6]
+            buff += second_attribute_bites[2:4]
+            buff += second_attribute_bites[0:2]
+            second_attribute_bites = buff
+            print(first_attribute_bites[0:2])
+
+    ident = first_attribute_bites[0:2]
+    residence_flag = lines[z][(col+16):(col+18)]
+    offset_series = lines[z+2][col:(col+4)]
+    buff = ''
+    buff += offset_series[2:4]
+    buff += offset_series[0:2]
+    offset_series = buff
+    size_data = lines[z+3][col:(col+8)]
+    buff = ''
+    buff += size_data[6:8]
+    buff += size_data[4:6]
+    buff += size_data[2:4]
+    buff += size_data[0:2]
+    size_data = buff
+    next_offset = hex(int(next_offset, 16) + int(offset_series, 16))
+    z = 0
+    row = '00' + next_offset[2:5]
+    col = next_offset[-1]
+    col = (int(col, 16) * 2) + 8
+    for i in range(0, 31):
+        match = re.findall(f"{row}", lines[i], re.IGNORECASE)
+        if not match:
+            z += 1
+            continue
+        else:
+            break
+    list_of_series = lines[z][col:(col+2)]
+    a = hex(int(list_of_series[0:1], 16) + int(list_of_series[-1], 16))
+    list_of_series = lines[z][col:(col+2+int(a[2:])*2)]
+    print(list_of_series)
+
+    c = int(list_of_series[1:2])*2
+    b = c+int(list_of_series[0:1])*2
+    value_of_clast = list_of_series[2:(2+c)]
+    offset_data_area = list_of_series[(2+c):(2+b)]
+    buff=''
+    buff+=offset_data_area[2:4]
+    buff+=offset_data_area[0:2]
+    offset_data_area = buff
+    offset_index_area = zones['2'] * zones['3'] * int(offset_data_area, 16)
+    index_sector = zones['3'] * int(offset_data_area, 16)
+    index_table = input(f'\033[31mПЕРЕЙДИ В {index_sector}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
+    lines = []
+    while True:
+        index_table = input()
+        if index_table == '':
+            break
+        else:
+            lines.append(index_table + '\n')
+    for i in range(0, 32):
+        lines[i] = lines[i].replace(" ", "")
+    offset_markers = lines[0][16:20]
+    buff = ""
+    buff+= offset_markers[2:4]
+    buff+= offset_markers[0:2]
+    offset_markers = buff
+    value_of_markers = lines[0][20:24]
+    buff = ""
+    buff += value_of_markers[2:4]
+    buff += value_of_markers[0:2]
+    value_of_markers = buff
+    offset_start_index = hex(offset_index_area + int(offset_markers,16) + int(value_of_markers, 16) * 2)
+    s = 1
+    while True:
+        if (int(offset_start_index[2:], 16) / 8).is_integer:
+            break
+        else:
+            offset_start_index = hex(offset_index_area + int(offset_markers, 16) + (int(value_of_markers, 16)+s) * 2)
+            s += 1
+
+    row = offset_start_index[2:-1]
+    col = offset_start_index[-1]
+    col = (int(col, 16) * 2) + 8
+    z = 0
+    for i in range(0, 31):
+        match = re.findall(f"{row}", lines[i], re.IGNORECASE)
+        if not match:
+            z += 1
+            continue
+        else:
+            break
+    print(offset_start_index)
+    offset_current = lines[z][col:(col+4)]
+    print(offset_current)
+
 
 print("КОГДА ЗАГРУЗИШЬ ВСЕ ФАЙЛЫ, ВВЕДИ ЛЮБОЕ ЗНАЧЕНИЕ")
 a = input()
