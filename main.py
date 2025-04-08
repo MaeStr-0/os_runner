@@ -435,7 +435,7 @@ else:
                     break
             first_attribute_bites = lines[z][col:(col + 8)]
             second_attribute_bites = lines[z][(col + 8):(col + 16)]
-            buff=''
+            buff = ''
             buff += second_attribute_bites[6:8]
             buff += second_attribute_bites[4:6]
             buff += second_attribute_bites[2:4]
@@ -444,13 +444,13 @@ else:
             print(first_attribute_bites[0:2])
 
     ident = first_attribute_bites[0:2]
-    residence_flag = lines[z][(col+16):(col+18)]
-    offset_series = lines[z+2][col:(col+4)]
+    residence_flag = lines[z][(col + 16):(col + 18)]
+    offset_series = lines[z + 2][col:(col + 4)]
     buff = ''
     buff += offset_series[2:4]
     buff += offset_series[0:2]
     offset_series = buff
-    size_data = lines[z+3][col:(col+8)]
+    size_data = lines[z + 3][col:(col + 8)]
     buff = ''
     buff += size_data[6:8]
     buff += size_data[4:6]
@@ -469,18 +469,18 @@ else:
             continue
         else:
             break
-    list_of_series = lines[z][col:(col+2)]
+    list_of_series = lines[z][col:(col + 2)]
     a = hex(int(list_of_series[0:1], 16) + int(list_of_series[-1], 16))
-    list_of_series = lines[z][col:(col+2+int(a[2:])*2)]
+    list_of_series = lines[z][col:(col + 2 + int(a[2:]) * 2)]
     print(list_of_series)
 
-    c = int(list_of_series[1:2])*2
-    b = c+int(list_of_series[0:1])*2
-    value_of_clast = list_of_series[2:(2+c)]
-    offset_data_area = list_of_series[(2+c):(2+b)]
-    buff=''
-    buff+=offset_data_area[2:4]
-    buff+=offset_data_area[0:2]
+    c = int(list_of_series[1:2]) * 2
+    b = c + int(list_of_series[0:1]) * 2
+    value_of_clast = list_of_series[2:(2 + c)]
+    offset_data_area = list_of_series[(2 + c):(2 + b)]
+    buff = ''
+    buff += offset_data_area[2:4]
+    buff += offset_data_area[0:2]
     offset_data_area = buff
     offset_index_area = zones['2'] * zones['3'] * int(offset_data_area, 16)
     index_sector = zones['3'] * int(offset_data_area, 16)
@@ -496,21 +496,21 @@ else:
         lines[i] = lines[i].replace(" ", "")
     offset_markers = lines[0][16:20]
     buff = ""
-    buff+= offset_markers[2:4]
-    buff+= offset_markers[0:2]
+    buff += offset_markers[2:4]
+    buff += offset_markers[0:2]
     offset_markers = buff
     value_of_markers = lines[0][20:24]
     buff = ""
     buff += value_of_markers[2:4]
     buff += value_of_markers[0:2]
     value_of_markers = buff
-    offset_start_index = hex(offset_index_area + int(offset_markers,16) + int(value_of_markers, 16) * 2)
+    offset_start_index = hex(offset_index_area + int(offset_markers, 16) + int(value_of_markers, 16) * 2)
     s = 1
     while True:
         if (int(offset_start_index[2:], 16) / 8).is_integer:
             break
         else:
-            offset_start_index = hex(offset_index_area + int(offset_markers, 16) + (int(value_of_markers, 16)+s) * 2)
+            offset_start_index = hex(offset_index_area + int(offset_markers, 16) + (int(value_of_markers) + s) * 2)
             s += 1
 
     row = offset_start_index[2:-1]
@@ -525,9 +525,8 @@ else:
         else:
             break
     print(offset_start_index)
-    offset_current = lines[z][col:(col+4)]
+    offset_current = lines[z][col:(col + 4)]
     print(offset_current)
-
 
 print("КОГДА ЗАГРУЗИШЬ ВСЕ ФАЙЛЫ, ВВЕДИ ЛЮБОЕ ЗНАЧЕНИЕ")
 a = input()
