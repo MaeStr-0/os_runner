@@ -527,6 +527,7 @@ else:
     print(offset_start_index)
     offset_current = lines[z][col:(col + 4)]
     print(offset_current)
+    offset_next_index = lines[z][col+16:col+18]
 
 print("КОГДА ЗАГРУЗИШЬ ВСЕ ФАЙЛЫ, ВВЕДИ ЛЮБОЕ ЗНАЧЕНИЕ")
 a = input()
