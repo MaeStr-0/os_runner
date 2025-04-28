@@ -3,6 +3,7 @@ import os
 import re
 import shlex
 import subprocess
+import pydoc
 
 # МЕТОДИЧКА ПО FAT https://drive.google.com/file/d/19GbO9TWT19yNlAx5nR7CA8Oi0FNyufrg/view
 # МЕТОДИЧКА ПО NTFC https://drive.google.com/file/d/1zPc29KquTsB0yoKcUOodIT4ZtslTv-Xy/view
@@ -390,6 +391,8 @@ else:
     buff += offset_attributes[2:4]
     buff += offset_attributes[0:2]
     offset_attributes = int(buff, 16)
+
+    #формула начала таблицы атрибутов
     start_attribute_table = hex(offset_attributes + offset_present_dir)
     print(start_attribute_table)
     col = start_attribute_table[-1]
@@ -405,8 +408,11 @@ else:
             continue
         else:
             break
+
+    #первые 4 байта - идентификатор атрибута, на этом шаге нужен атрибут А0
     first_attribute_bites = lines[z][col:(col + 8)]
     print(first_attribute_bites)
+    # вторые 4 байта - размер атрибута, его мы прибавляем к началу таблицу атрибутов
     second_attribute_bites = lines[z][(col + 8):(col + 16)]
     buff = ''
     buff += second_attribute_bites[6:8]
@@ -443,13 +449,17 @@ else:
             second_attribute_bites = buff
             print(first_attribute_bites[0:2])
 
+    #идентификатор атрибута
     ident = first_attribute_bites[0:2]
+    #флаг нерезидентности
     residence_flag = lines[z][(col + 16):(col + 18)]
+    #смещение до списка серий от начала атрибута
     offset_series = lines[z + 2][col:(col + 4)]
     buff = ''
     buff += offset_series[2:4]
     buff += offset_series[0:2]
     offset_series = buff
+    #размер данных
     size_data = lines[z + 3][col:(col + 8)]
     buff = ''
     buff += size_data[6:8]
@@ -469,21 +479,33 @@ else:
             continue
         else:
             break
+    #список серий
     list_of_series = lines[z][col:(col + 2)]
-    a = hex(int(list_of_series[0:1], 16) + int(list_of_series[-1], 16))
+
+    a = hex(int(list_of_series[0:1]) + int(list_of_series[-1], 16))
     list_of_series = lines[z][col:(col + 2 + int(a[2:]) * 2)]
-    print(list_of_series)
+    print("list of series", list_of_series)
 
     c = int(list_of_series[1:2]) * 2
     b = c + int(list_of_series[0:1]) * 2
+
+    #колво занимаемых областью данных кластеров
     value_of_clast = list_of_series[2:(2 + c)]
+
+    #смещение до области данных
     offset_data_area = list_of_series[(2 + c):(2 + b)]
+
     buff = ''
     buff += offset_data_area[2:4]
     buff += offset_data_area[0:2]
     offset_data_area = buff
+
+    #смещение области данных на таблицу индексов
     offset_index_area = zones['2'] * zones['3'] * int(offset_data_area, 16)
+
+    #сектор области данных на таблицу индексов
     index_sector = zones['3'] * int(offset_data_area, 16)
+
     index_table = input(f'\033[31mПЕРЕЙДИ В {index_sector}-Й СЕКТОР И ВСТАВЬ СЮДА ТАБЛИЦУ\033[0m\n')
     lines = []
     while True:
@@ -494,25 +516,40 @@ else:
             lines.append(index_table + '\n')
     for i in range(0, 32):
         lines[i] = lines[i].replace(" ", "")
+
+
+    #смещение таблицы индексов
+    offset_index_table = int(lines[0][0:8], 16)
+    print('offset_index_table', offset_index_table)
+
     offset_markers = lines[0][16:20]
     buff = ""
     buff += offset_markers[2:4]
     buff += offset_markers[0:2]
+
+    #смещение до списка маркеров
     offset_markers = buff
     value_of_markers = lines[0][20:24]
     buff = ""
     buff += value_of_markers[2:4]
     buff += value_of_markers[0:2]
+
+    #количество маркеров в списке
     value_of_markers = buff
-    offset_start_index = hex(offset_index_area + int(offset_markers, 16) + int(value_of_markers, 16) * 2)
+
+    #смещение до начала данных таблицы индексов
+    offset_start_index = (offset_index_table + int(offset_markers, 16) + int(value_of_markers) * 2)
+    print('offset_start_index_1', offset_start_index)
     s = 1
     while True:
-        if (int(offset_start_index[2:], 16) / 8).is_integer:
+        if offset_start_index / 8 == int(offset_start_index / 8):
             break
         else:
-            offset_start_index = hex(offset_index_area + int(offset_markers, 16) + (int(value_of_markers) + s) * 2)
+            offset_start_index = (offset_index_table + int(offset_markers, 16) + (int(value_of_markers) + s) * 2)
             s += 1
 
+    offset_start_index = hex(offset_start_index)
+    print('offset_start_index_2', offset_start_index)
     row = offset_start_index[2:-1]
     col = offset_start_index[-1]
     col = (int(col, 16) * 2) + 8
@@ -525,9 +562,11 @@ else:
         else:
             break
     print(offset_start_index)
+    #смеще
     offset_current = lines[z][col:(col + 4)]
     print(offset_current)
     offset_next_index = lines[z][col+16:col+18]
+    
 
 print("КОГДА ЗАГРУЗИШЬ ВСЕ ФАЙЛЫ, ВВЕДИ ЛЮБОЕ ЗНАЧЕНИЕ")
 a = input()
